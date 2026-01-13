@@ -8,30 +8,6 @@ import csv
 from typing import Dict, List, Any, Optional
 
 
-def clean_text(text: str) -> str:
-    """Clean text for CSV by removing HTML tags and unescaping HTML entities."""
-    if not text:
-        return ""
-
-    # Remove HTML tags but keep the content
-    import re
-
-    text = re.sub(r"<[^>]+>", "", text)
-
-    # Unescape HTML entities
-    import html
-
-    text = html.unescape(text)
-
-    # Replace newlines with <br> for HTML display
-    text = text.replace("\n", "<br>").replace("\r", "")
-
-    # Remove extra whitespace
-    text = " ".join(text.split())
-
-    return text
-
-
 def process_radicals(
     data: Dict[str, Any], target_level: Optional[int] = None
 ) -> List[Dict[str, str]]:
@@ -53,7 +29,7 @@ def process_radicals(
             front = f'<div style="font-size: 10px; color: #666;">Radical - Level {level_num}</div><div style="font-size: 24px; color: #1E90FF; text-align: center; margin: 15px 0;">{character_display}</div>'
 
             # Create collapsible mnemonic section
-            mnemonic = item.get("mnemonic", "")
+            mnemonic = item.get("mnemonic", "").replace("\n", "<br>")
             if mnemonic:
                 # Get mnemonic image if available
                 mnemonic_image = item.get("mnemonic_image", "")
@@ -68,6 +44,8 @@ def process_radicals(
                         .kanji-highlight {{ color: #FFB347; font-weight: bold; }}
                         .reading-highlight {{ color: #98FB98; font-weight: bold; }}
                         .vocabulary-highlight {{ color: #FFB6C1; font-weight: bold; }}
+                        mark {{ background-color: transparent; }}
+                        span[lang="ja"] {{ background-color: #1a1a1a; padding: 2px 4px; border-radius: 2px; }}
                     </style>
                     {mnemonic_image_html}
                     {mnemonic}
@@ -105,7 +83,9 @@ def process_kanji_meanings(
             front = f'<div style="font-size: 10px; color: #666;">Kanji - Level {level_num}</div><div style="font-size: 24px; color: #FF8C00; text-align: center; margin: 15px 0;">{item["character"]}</div><div style="font-size: 10px; color: #4A90E2;">Meaning</div>'
 
             # Get meaning mnemonic
-            meaning_mnemonic = item.get("mnemonics", {}).get("meaning", "")
+            meaning_mnemonic = (
+                item.get("mnemonics", {}).get("meaning", "").replace("\n", "<br>")
+            )
             if meaning_mnemonic:
                 # Add CSS styling to properly render HTML in mnemonic
                 styled_mnemonic = f"""<div style="background-color: #2d2d2d; font-size: 8px; color: #fff; line-height: 1.4;">
@@ -114,6 +94,8 @@ def process_kanji_meanings(
                         .kanji-highlight {{ color: #FFB347; font-weight: bold; }}
                         .reading-highlight {{ color: #98FB98; font-weight: bold; }}
                         .vocabulary-highlight {{ color: #FFB6C1; font-weight: bold; }}
+                        mark {{ background-color: transparent; }}
+                        span[lang="ja"] {{ background-color: #1a1a1a; padding: 2px 4px; border-radius: 2px; }}
                     </style>
                     {meaning_mnemonic}
                 </div>"""
@@ -193,7 +175,9 @@ def process_kanji_readings(
             reading_display = "".join(reading_lines)
 
             # Get reading mnemonic
-            reading_mnemonic = item.get("mnemonics", {}).get("reading", "")
+            reading_mnemonic = (
+                item.get("mnemonics", {}).get("reading", "").replace("\n", "<br>")
+            )
             if reading_mnemonic:
                 # Add CSS styling to properly render HTML in mnemonic
                 styled_mnemonic = f"""<div style="background-color: #2d2d2d; font-size: 8px; color: #fff; line-height: 1.4;">
@@ -202,6 +186,8 @@ def process_kanji_readings(
                         .kanji-highlight {{ color: #FFB347; font-weight: bold; }}
                         .reading-highlight {{ color: #98FB98; font-weight: bold; }}
                         .vocabulary-highlight {{ color: #FFB6C1; font-weight: bold; }}
+                        mark {{ background-color: transparent; }}
+                        span[lang="ja"] {{ background-color: #1a1a1a; padding: 2px 4px; border-radius: 2px; }}
                     </style>
                     {reading_mnemonic}
                 </div>"""
@@ -243,7 +229,9 @@ def process_vocab_meanings(
                 meanings.extend(item["alternative_meanings"])
 
             # Get meaning explanation
-            meaning_explanation = item.get("meaning_explanation", "")
+            meaning_explanation = item.get("meaning_explanation", "").replace(
+                "\n", "<br>"
+            )
             if meaning_explanation:
                 # Add CSS styling to properly render HTML in mnemonic
                 styled_mnemonic = f"""<div style="background-color: #2d2d2d; font-size: 8px; color: #fff; line-height: 1.4;">
@@ -252,6 +240,8 @@ def process_vocab_meanings(
                         .kanji-highlight {{ color: #FFB347; font-weight: bold; }}
                         .reading-highlight {{ color: #98FB98; font-weight: bold; }}
                         .vocabulary-highlight {{ color: #FFB6C1; font-weight: bold; }}
+                        mark {{ background-color: transparent; }}
+                        span[lang="ja"] {{ background-color: #1a1a1a; padding: 2px 4px; border-radius: 2px; }}
                     </style>
                     {meaning_explanation}
                 </div>"""
@@ -288,7 +278,9 @@ def process_vocab_readings(
             front = f'<div style="font-size: 10px; color: #666;">Vocab - Level {level_num}</div><div style="font-size: 24px; color: #228B22; text-align: center; margin: 15px 0;">{item["character"]}</div><div style="font-size: 10px; color: #50C878;">Reading</div>'
 
             # Get reading explanation
-            reading_explanation = item.get("reading_explanation", "")
+            reading_explanation = item.get("reading_explanation", "").replace(
+                "\n", "<br>"
+            )
             if reading_explanation:
                 # Add CSS styling to properly render HTML in mnemonic
                 styled_mnemonic = f"""<div style="background-color: #2d2d2d; font-size: 8px; color: #fff; line-height: 1.4;">
@@ -297,6 +289,8 @@ def process_vocab_readings(
                         .kanji-highlight {{ color: #FFB347; font-weight: bold; }}
                         .reading-highlight {{ color: #98FB98; font-weight: bold; }}
                         .vocabulary-highlight {{ color: #FFB6C1; font-weight: bold; }}
+                        mark {{ background-color: transparent; }}
+                        span[lang="ja"] {{ background-color: #1a1a1a; padding: 2px 4px; border-radius: 2px; }}
                     </style>
                     {reading_explanation}
                 </div>"""
