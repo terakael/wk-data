@@ -262,31 +262,46 @@ class WaniKaniScraper:
         """Extract meaning and reading mnemonics with HTML tags preserved"""
         mnemonics = {"meaning": "", "reading": ""}
 
-        # Find all mnemonic sections
-        for heading in soup.find_all("h3"):
-            text = heading.get_text().strip()
-            if "Mnemonic" in text:
-                # Find the parent section
-                section = heading.find_parent("section", class_="subject-section")
-                if not section:
-                    continue
-
-                # Get all mnemonic paragraphs within this section
-                mnemonic_parts = []
-                for p in section.find_all("p"):
-                    # Preserve inner HTML content
-                    inner_html = ""
-                    for content in p.contents:
-                        inner_html += str(content)
-                    mnemonic_parts.append(inner_html.strip())
-
-                mnemonic_html = " ".join(mnemonic_parts)
-
-                # Determine if it's meaning or reading mnemonic
-                # Check if this mnemonic is inside the Readings section
-                # Look for the nearest containing h2 section
-                containing_section = heading.find_previous("h2")
-                if containing_section and "Readings" in containing_section.get_text():
+        # Find all h3 tags that say "Mnemonic"
+        for heading in soup.find_all("h3", class_="subject-section__subtitle"):
+            if "Mnemonic" not in heading.get_text().strip():
+                continue
+            
+            # Find the subsection containing this mnemonic
+            subsection = heading.find_parent("section", class_="subject-section__subsection")
+            if not subsection:
+                continue
+            
+            # Collect mnemonic paragraphs (both main text and hints)
+            mnemonic_parts = []
+            
+            # Get main mnemonic text
+            for p in subsection.find_all("p", class_="subject-section__text"):
+                inner_html = "".join(str(content) for content in p.contents)
+                mnemonic_parts.append(inner_html.strip())
+            
+            # Get hint texts
+            for p in subsection.find_all("p", class_="subject-hint__text"):
+                inner_html = "".join(str(content) for content in p.contents)
+                mnemonic_parts.append(inner_html.strip())
+            
+            mnemonic_html = "\n\n".join(mnemonic_parts)
+            
+            # Determine if it's meaning or reading mnemonic
+            # Check if this subsection is within the Reading section
+            parent_section = subsection.find_parent("section", class_="subject-section")
+            if parent_section:
+                classes = parent_section.get("class")
+                # Handle case where class attribute might be a string or list
+                if classes:
+                    if isinstance(classes, list):
+                        is_reading = "subject-section--reading" in classes
+                    else:
+                        is_reading = "subject-section--reading" in str(classes)
+                else:
+                    is_reading = False
+                
+                if is_reading:
                     mnemonics["reading"] = mnemonic_html
                 else:
                     mnemonics["meaning"] = mnemonic_html
