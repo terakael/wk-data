@@ -296,7 +296,7 @@ def main():
     with open("wanikani_vocabulary_complete.json", "r", encoding="utf-8") as f:
         vocabulary_data = json.load(f)
 
-    # Process all data - interleaving meanings and readings for each item
+    # Process all data - by level, interleaving meanings and readings for each item
     all_cards = []
     
     # Track card counts for summary
@@ -306,32 +306,41 @@ def main():
     vocab_meaning_count = 0
     vocab_reading_count = 0
 
-    # Process radicals first (they don't have readings)
-    radical_cards = process_radicals(radicals_data, target_level)
-    all_cards.extend(radical_cards)
-    radical_count = len(radical_cards)
+    # Get all unique levels (assuming all data structures have the same levels)
+    all_levels = sorted(set(
+        list(radicals_data.keys()) + 
+        list(kanji_data.keys()) + 
+        list(vocabulary_data.keys())
+    ), key=int)
 
-    # Process kanji - interleave meaning and reading for each item
-    kanji_meaning_cards = process_kanji_meanings(kanji_data, target_level)
-    kanji_reading_cards = process_kanji_readings(kanji_data, target_level)
-    
-    # Interleave kanji cards (meaning, reading, meaning, reading, ...)
-    for meaning_card, reading_card in zip(kanji_meaning_cards, kanji_reading_cards):
-        all_cards.append(meaning_card)
-        all_cards.append(reading_card)
-        kanji_meaning_count += 1
-        kanji_reading_count += 1
-
-    # Process vocabulary - interleave meaning and reading for each item
-    vocab_meaning_cards = process_vocab_meanings(vocabulary_data, target_level)
-    vocab_reading_cards = process_vocab_readings(vocabulary_data, target_level)
-    
-    # Interleave vocab cards (meaning, reading, meaning, reading, ...)
-    for meaning_card, reading_card in zip(vocab_meaning_cards, vocab_reading_cards):
-        all_cards.append(meaning_card)
-        all_cards.append(reading_card)
-        vocab_meaning_count += 1
-        vocab_reading_count += 1
+    # Process each level in order
+    for level in all_levels:
+        level_num = int(level)
+        
+        # Add radicals for this level
+        radical_cards = process_radicals(radicals_data, level_num)
+        all_cards.extend(radical_cards)
+        radical_count += len(radical_cards)
+        
+        # Add kanji for this level - interleave meaning and reading
+        kanji_meaning_cards = process_kanji_meanings(kanji_data, level_num)
+        kanji_reading_cards = process_kanji_readings(kanji_data, level_num)
+        
+        for meaning_card, reading_card in zip(kanji_meaning_cards, kanji_reading_cards):
+            all_cards.append(meaning_card)
+            all_cards.append(reading_card)
+            kanji_meaning_count += 1
+            kanji_reading_count += 1
+        
+        # Add vocabulary for this level - interleave meaning and reading
+        vocab_meaning_cards = process_vocab_meanings(vocabulary_data, level_num)
+        vocab_reading_cards = process_vocab_readings(vocabulary_data, level_num)
+        
+        for meaning_card, reading_card in zip(vocab_meaning_cards, vocab_reading_cards):
+            all_cards.append(meaning_card)
+            all_cards.append(reading_card)
+            vocab_meaning_count += 1
+            vocab_reading_count += 1
 
     # Write to CSV
     filename = "wanikani_complete_collapsible_deck.csv"
