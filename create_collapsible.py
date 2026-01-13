@@ -296,38 +296,42 @@ def main():
     with open("wanikani_vocabulary_complete.json", "r", encoding="utf-8") as f:
         vocabulary_data = json.load(f)
 
-    # Process all data
+    # Process all data - interleaving meanings and readings for each item
     all_cards = []
+    
+    # Track card counts for summary
+    radical_count = 0
+    kanji_meaning_count = 0
+    kanji_reading_count = 0
+    vocab_meaning_count = 0
+    vocab_reading_count = 0
 
-    # Add radicals
+    # Process radicals first (they don't have readings)
     radical_cards = process_radicals(radicals_data, target_level)
     all_cards.extend(radical_cards)
+    radical_count = len(radical_cards)
 
-    # Add kanji meaning cards
+    # Process kanji - interleave meaning and reading for each item
     kanji_meaning_cards = process_kanji_meanings(kanji_data, target_level)
-    all_cards.extend(kanji_meaning_cards)
-
-    # Add kanji reading cards
     kanji_reading_cards = process_kanji_readings(kanji_data, target_level)
-    all_cards.extend(kanji_reading_cards)
+    
+    # Interleave kanji cards (meaning, reading, meaning, reading, ...)
+    for meaning_card, reading_card in zip(kanji_meaning_cards, kanji_reading_cards):
+        all_cards.append(meaning_card)
+        all_cards.append(reading_card)
+        kanji_meaning_count += 1
+        kanji_reading_count += 1
 
-    # Add vocab meaning cards
+    # Process vocabulary - interleave meaning and reading for each item
     vocab_meaning_cards = process_vocab_meanings(vocabulary_data, target_level)
-    all_cards.extend(vocab_meaning_cards)
-
-    # Add vocab reading cards
     vocab_reading_cards = process_vocab_readings(vocabulary_data, target_level)
-    all_cards.extend(vocab_reading_cards)
-
-    # Sort by level, then by type order
-    type_order = {
-        "radical": 0,
-        "kanji-meaning": 1,
-        "kanji-reading": 2,
-        "vocab-meaning": 3,
-        "vocab-reading": 4,
-    }
-    all_cards.sort(key=lambda x: (x["level"], type_order[x["type"]]))
+    
+    # Interleave vocab cards (meaning, reading, meaning, reading, ...)
+    for meaning_card, reading_card in zip(vocab_meaning_cards, vocab_reading_cards):
+        all_cards.append(meaning_card)
+        all_cards.append(reading_card)
+        vocab_meaning_count += 1
+        vocab_reading_count += 1
 
     # Write to CSV
     filename = "wanikani_complete_collapsible_deck.csv"
@@ -347,11 +351,11 @@ def main():
 
     print(f"Created complete collapsible deck with {len(all_cards)} cards!")
     print(f"Output file: {filename}")
-    print(f"Radicals: {len(radical_cards)}")
-    print(f"Kanji meanings: {len(kanji_meaning_cards)}")
-    print(f"Kanji readings: {len(kanji_reading_cards)}")
-    print(f"Vocab meanings: {len(vocab_meaning_cards)}")
-    print(f"Vocab readings: {len(vocab_reading_cards)}")
+    print(f"Radicals: {radical_count}")
+    print(f"Kanji meanings: {kanji_meaning_count}")
+    print(f"Kanji readings: {kanji_reading_count}")
+    print(f"Vocab meanings: {vocab_meaning_count}")
+    print(f"Vocab readings: {vocab_reading_count}")
     print("\nFeatures:")
     print("- HTML <details>/<summary> for collapsible sections")
     print("- Click '📖 Show Mnemonic' to expand")
