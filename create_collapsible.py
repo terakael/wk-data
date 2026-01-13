@@ -55,6 +55,12 @@ def process_radicals(
             # Create collapsible mnemonic section
             mnemonic = item.get("mnemonic", "")
             if mnemonic:
+                # Get mnemonic image if available
+                mnemonic_image = item.get("mnemonic_image", "")
+                mnemonic_image_html = ""
+                if mnemonic_image:
+                    mnemonic_image_html = f'<img src="{mnemonic_image}" style="max-width: 100%; margin: 10px 0; display: block;">'
+                
                 # Add CSS styling to properly render HTML in mnemonic
                 styled_mnemonic = f"""<div style="background-color: #2d2d2d; font-size: 8px; color: #fff; line-height: 1.4;">
                     <style>
@@ -63,6 +69,7 @@ def process_radicals(
                         .reading-highlight {{ color: #98FB98; font-weight: bold; }}
                         .vocabulary-highlight {{ color: #FFB6C1; font-weight: bold; }}
                     </style>
+                    {mnemonic_image_html}
                     {mnemonic}
                 </div>"""
 
