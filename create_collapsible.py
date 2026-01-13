@@ -149,12 +149,27 @@ def process_kanji_readings(
         for item in items:
             front = f'<div style="font-size: 10px; color: #666;">Kanji - Level {level_num}</div><div style="font-size: 24px; color: #FF8C00; text-align: center; margin: 15px 0;">{item["character"]}</div><div style="font-size: 10px; color: #666;">Reading</div>'
 
-            # Combine all readings
-            readings = []
-            if item.get("readings", {}).get("on'yomi"):
-                readings.extend(item["readings"]["on'yomi"])
-            if item.get("readings", {}).get("kun'yomi"):
-                readings.extend(item["readings"]["kun'yomi"])
+            # Group readings by category
+            onyomi_readings = item.get("readings", {}).get("on'yomi", [])
+            kunyomi_readings = item.get("readings", {}).get("kun'yomi", [])
+            nanori_readings = item.get("readings", {}).get("nanori", [])
+
+            # Build reading display with category-specific tag styling
+            reading_lines = []
+            
+            if onyomi_readings:
+                tags = "".join([f'<span style="display: inline-block; padding: 3px 8px; margin: 2px; background: rgba(74, 144, 226, 0.2); color: #2C5AA0; border-radius: 3px; font-size: 14px;">{reading}</span>' for reading in onyomi_readings])
+                reading_lines.append(f'<div style="margin-bottom: 6px;"><span style="font-size: 12px; font-weight: bold; color: #4A90E2;">On\'yomi:</span> {tags}</div>')
+            
+            if kunyomi_readings:
+                tags = "".join([f'<span style="display: inline-block; padding: 3px 8px; margin: 2px; background: rgba(80, 200, 120, 0.2); color: #2E7D46; border-radius: 3px; font-size: 14px;">{reading}</span>' for reading in kunyomi_readings])
+                reading_lines.append(f'<div style="margin-bottom: 6px;"><span style="font-size: 12px; font-weight: bold; color: #50C878;">Kun\'yomi:</span> {tags}</div>')
+            
+            if nanori_readings:
+                tags = "".join([f'<span style="display: inline-block; padding: 3px 8px; margin: 2px; background: rgba(155, 89, 182, 0.2); color: #6A1B9A; border-radius: 3px; font-size: 14px;">{reading}</span>' for reading in nanori_readings])
+                reading_lines.append(f'<div style="margin-bottom: 6px;"><span style="font-size: 12px; font-weight: bold; color: #9B59B6;">Nanori:</span> {tags}</div>')
+            
+            reading_display = "".join(reading_lines)
 
             # Get reading mnemonic
             reading_mnemonic = item.get("mnemonics", {}).get("reading", "")
@@ -170,9 +185,9 @@ def process_kanji_readings(
                     {reading_mnemonic}
                 </div>"""
 
-                back = f'<span style="font-size: 16px;">{", ".join(readings)}</span><br><br><details><summary style="cursor: pointer; color: #666; font-size: 12px;">📖 Show Reading Mnemonic</summary>{styled_mnemonic}</details>'
+                back = f'<div style="font-size: 16px;">{reading_display}</div><br><details><summary style="cursor: pointer; color: #666; font-size: 12px;">📖 Show Reading Mnemonic</summary>{styled_mnemonic}</details>'
             else:
-                back = f'<span style="font-size: 16px;">{", ".join(readings)}</span>'
+                back = f'<div style="font-size: 16px;">{reading_display}</div>'
 
             cards.append(
                 {
